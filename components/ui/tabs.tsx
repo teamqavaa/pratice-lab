@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+// Root flexes: in horizontal mode the list (row) stacks above the panels via flex-col.
 function Tabs({
   className,
   orientation = "horizontal",

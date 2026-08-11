@@ -14,6 +14,12 @@ export async function generateMetadata({
   }
 }
 
-export default function LabPage() {
-  return <LabWorkspace />
+export default async function LabPage({
+  params,
+}: {
+  params: Promise<{ labId: string }>
+}) {
+  const { labId } = await params
+
+  return <LabWorkspace labId={labId} />
 }

@@ -4,6 +4,7 @@ import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 
 import { cn } from "@/lib/utils"
 
+// flex-wrap lets label + track stack on narrow widths instead of overflowing.
 function Progress({
   className,
   children,

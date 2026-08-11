@@ -23,6 +23,7 @@ function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
   )
 }
 
+// Two chevrons swapped by aria-expanded animate open/close (vs rotating a single icon).
 function AccordionTrigger({
   className,
   children,

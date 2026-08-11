@@ -24,6 +24,7 @@ function ResizablePanel({ ...props }: ResizablePrimitive.PanelProps) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />
 }
 
+// The invisible after-element widens the drag target; aria-orientation swaps it line/column to match the group.
 function ResizableHandle({
   withHandle,
   className,

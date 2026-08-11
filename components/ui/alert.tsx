@@ -19,6 +19,8 @@ const alertVariants = cva(
   }
 )
 
+// Icon (svg) children shift the layout to an icon/body grid with full-row-span alignment.
+// Right padding is reserved for the absolutely-positioned AlertAction slot.
 function Alert({
   className,
   variant,

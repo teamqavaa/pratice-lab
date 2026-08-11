@@ -5,6 +5,7 @@ import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 
 import { cn } from "@/lib/utils"
 
+// Pseudo-ring + blend modes let the border show over images, not just beside them.
 function Avatar({
   className,
   size = "default",
@@ -70,6 +71,7 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
+// Negative spacing overlaps faces; background ring separates each avatar.
 function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

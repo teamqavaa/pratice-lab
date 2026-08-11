@@ -27,6 +27,7 @@ const badgeVariants = cva(
   }
 )
 
+// [a]: hover variants only activate when nested inside a link, keeping standalone badges static.
 function Badge({
   className,
   variant = "default",

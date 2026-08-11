@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// One --card-spacing var on the root drives header/content/footer padding; size="sm" just overrides it.
 function Card({
   className,
   size = "default",

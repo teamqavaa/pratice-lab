@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// field-sizing-content grows the box with its content; min-h-16 keeps a comfortable resting height.
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

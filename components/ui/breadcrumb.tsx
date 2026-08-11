@@ -39,6 +39,7 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   )
 }
 
+// useRender keeps the style classes while letting callers swap the tag (e.g. <span/> for inert crumbs).
 function BreadcrumbLink({
   className,
   render,
