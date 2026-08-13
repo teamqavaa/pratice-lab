@@ -13,6 +13,7 @@ export type Lab = {
   category: string
   difficulty: "guided" | "intermediate" | "advanced"
   steps: LabStep[]
+  starterCode: string | null
 }
 
 // UI-first mock data — backend wiring replaces this later, so consumers only
@@ -24,6 +25,10 @@ export const mockLabs: Lab[] = [
     language: "python",
     category: "Data Literacy",
     difficulty: "guided",
+    starterCode: `visitor_counts = [120, 340, 275, 410, 95]
+
+# TODO: your code here
+`,
     steps: [
       {
         id: "create-list",

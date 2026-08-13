@@ -23,6 +23,7 @@ type ApiLab = {
   language: Language
   status: string
   created_at: string
+  starter_code: string | null
   objectives: ApiObjective[]
 }
 
@@ -47,6 +48,7 @@ function toLab(apiLab: ApiLab): Lab {
     category: "Practice Lab",
     difficulty: "guided",
     steps,
+    starterCode: apiLab.starter_code ?? null,
   }
 }
 

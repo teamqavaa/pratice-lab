@@ -91,7 +91,7 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
     return initial
   })
   const [hintsRevealed, setHintsRevealed] = useState<Record<string, boolean>>({})
-  const [code, setCode] = useState(config.sample)
+  const [code, setCode] = useState(lab.starterCode ?? config.sample)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const [sessionCompleted, setSessionCompleted] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
