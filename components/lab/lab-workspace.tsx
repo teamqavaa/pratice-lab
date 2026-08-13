@@ -179,7 +179,7 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
           message = `Rate limit reached: ${result.message}`
           break
         case "validation":
-          message = `Invalid request: ${result.message}`
+          message = `Runtime error: ${result.message}`
           break
         case "timeout":
           message = "Execution timed out. Try simplifying your code or check for infinite loops."
