@@ -1,6 +1,8 @@
+import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
 import LabWorkspace from "@/components/lab/lab-workspace"
+import { getLab } from "@/lib/actions/lab-sessions"
 
 export async function generateMetadata({
   params,
@@ -8,10 +10,9 @@ export async function generateMetadata({
   params: Promise<{ labId: string }>
 }): Promise<Metadata> {
   const { labId } = await params
-
-  return {
-    title: `Lab ${labId}`,
-  }
+  const result = await getLab(labId)
+  if (!result.ok) return { title: "Practice Lab" }
+  return { title: result.lab.title }
 }
 
 export default async function LabPage({
@@ -20,6 +21,9 @@ export default async function LabPage({
   params: Promise<{ labId: string }>
 }) {
   const { labId } = await params
+  const result = await getLab(labId)
 
-  return <LabWorkspace labId={labId} />
+  if (!result.ok) notFound()
+
+  return <LabWorkspace lab={result.lab} />
 }
