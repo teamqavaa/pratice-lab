@@ -27,7 +27,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Check, FileCode, Lightbulb, Play, Terminal } from "lucide-react"
+import { Check, FileCode, Lightbulb, Play, RotateCcw, Terminal } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 import CodeEditor from "@/components/lab/code-editor"
 import type { Lab } from "@/lib/mock-data"
@@ -37,6 +47,7 @@ import {
   completeLab,
   executeLab,
   getLabSession,
+  resetLabSession,
   saveLabSession,
   sendLabHeartbeat,
 } from "@/lib/actions/lab-sessions"
@@ -94,6 +105,7 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
   const [code, setCode] = useState(lab.starterCode ?? config.sample)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const [sessionCompleted, setSessionCompleted] = useState(false)
+  const [restartOpen, setRestartOpen] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [runOutput, setRunOutput] = useState<RunOutput>({
     text: "Run your code to see logs appear here.",
@@ -210,6 +222,24 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
     }
   }
 
+  const handleRestart = async () => {
+    // Wipe every piece of per-attempt state so the lab looks brand new. The
+    // API call runs after so a reload keeps the cleared state.
+    setSessionCompleted(false)
+    setCode(lab.starterCode ?? config.sample)
+    setStepStatus(
+      Object.fromEntries(lab.steps.map((step, index) => [step.id, index === 0 ? "in_progress" : "locked"]))
+    )
+    setActiveStepId(lab.steps[0].id)
+    setOpenStepIds([lab.steps[0].id])
+    setHintsRevealed({})
+    setRunOutput({ text: "Run your code to see logs appear here.", status: "idle" })
+    setSaveStatus("idle")
+    setRestartOpen(false)
+
+    await resetLabSession(lab.id)
+  }
+
   const toggleHint = (stepId: string) => {
     setHintsRevealed((prev) => ({ ...prev, [stepId]: !prev[stepId] }))
   }
@@ -240,6 +270,33 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
           <Badge>{LANGUAGE_LABEL[lab.language]}</Badge>
           <Badge variant="secondary">{lab.category}</Badge>
           <Badge variant="outline">{lab.difficulty}</Badge>
+          <AlertDialog open={restartOpen} onOpenChange={setRestartOpen}>
+            <AlertDialogTrigger
+              render={
+                <Button size="sm" variant="outline">
+                  <RotateCcw />
+                  Restart lab
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Restart lab?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This clears your saved code, resets the lab progress, and returns
+                  the editor to its starter code. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogClose
+                  render={<Button variant="outline">Cancel</Button>}
+                />
+                <Button variant="destructive" onClick={handleRestart}>
+                  Restart lab
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button
             size="sm"
             variant={sessionCompleted ? "outline" : "default"}

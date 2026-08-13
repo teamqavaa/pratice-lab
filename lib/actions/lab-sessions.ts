@@ -283,3 +283,18 @@ export async function completeLab(labId: string): Promise<CompleteLabResult> {
     return { ok: false, message: err instanceof Error ? err.message : "Unknown error" }
   }
 }
+
+export type ResetLabSessionResult = { ok: true } | { ok: false; message: string }
+
+export async function resetLabSession(labId: string): Promise<ResetLabSessionResult> {
+  try {
+    const res = await djangoFetch(`/api/sessions/${labId}/reset/`, { method: "POST" })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { ok: false, message: data.error || `Reset failed (status ${res.status})` }
+    }
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Unknown error" }
+  }
+}
