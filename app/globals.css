@@ -126,6 +126,42 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Scoped to the Lab workspace so the rest of the app keeps the light theme.
+   .lab-theme-surface re-applies the palette on the portaled restart dialog,
+   which would otherwise escape the workspace's DOM subtree.
+   color must be set explicitly: inherited body color stays dark even though
+   --foreground is re-declared here. */
+.lab-theme,
+.lab-theme-surface {
+  color: var(--foreground);
+  --background: #0d0d12;
+  --foreground: #f4f4f5;
+  --card: #141418;
+  --card-foreground: #f4f4f5;
+  --popover: #141418;
+  --popover-foreground: #f4f4f5;
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+  --secondary: #27272a;
+  --secondary-foreground: #e4e4e7;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --accent: #262629;
+  --accent-foreground: #e4e4e7;
+  --destructive: #ef4444;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #8b5cf6;
+  --status-done: #4ade80;
+  --status-in-progress: #8b5cf6;
+  --status-locked: var(--muted-foreground);
+}
+
+/* Accent the active line-variant tab underline inside the lab theme. */
+.lab-theme [data-slot="tabs-trigger"][data-active]::after {
+  background-color: var(--primary);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

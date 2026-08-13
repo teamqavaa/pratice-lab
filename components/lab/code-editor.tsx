@@ -1,6 +1,8 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { syntaxHighlighting } from "@codemirror/language"
+import { oneDarkHighlightStyle } from "@uiw/react-codemirror"
 
 import { LANGUAGE_CONFIG, type Language } from "@/lib/languages"
 
@@ -26,7 +28,7 @@ export default function CodeEditor({ language, value, onChange }: CodeEditorProp
         value={value}
         height="100%"
         theme="dark"
-        extensions={[config.extension]}
+        extensions={[syntaxHighlighting(oneDarkHighlightStyle), config.extension]}
         onChange={onChange}
         basicSetup={{
           lineNumbers: true,

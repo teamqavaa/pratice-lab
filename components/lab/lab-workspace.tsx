@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { ArrowLeft, Check, FileCode, ListChecks, RotateCcw, Terminal } from "lucide-react"
 
 import {
   Breadcrumb,
@@ -18,16 +20,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Check, FileCode, Lightbulb, Play, RotateCcw, Terminal } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogClose,
@@ -39,10 +32,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-import CodeEditor from "@/components/lab/code-editor"
+import { LabCode } from "@/components/lab/lab-code"
+import { LabOutput } from "@/components/lab/lab-output"
+import { LabSteps } from "@/components/lab/lab-steps"
+import type { RunOutput, SaveStatus, StepStatus } from "@/components/lab/lab-types"
+import { useMediaQuery } from "@/lib/use-media-query"
 import type { Lab } from "@/lib/mock-data"
 import { LANGUAGE_CONFIG } from "@/lib/languages"
-import { cn } from "@/lib/utils"
 import {
   completeLab,
   executeLab,
@@ -52,45 +48,19 @@ import {
   sendLabHeartbeat,
 } from "@/lib/actions/lab-sessions"
 
-type StepStatus = "done" | "in_progress" | "locked"
-
-const STATUS_LABEL: Record<StepStatus, string> = {
-  done: "Done",
-  in_progress: "In Progress",
-  locked: "Locked",
-}
-
-const STATUS_BADGE_CLASS: Record<StepStatus, string> = {
-  done: "border-status-done/30 bg-status-done/10 text-status-done",
-  in_progress:
-    "border-status-in-progress/30 bg-status-in-progress/10 text-status-in-progress",
-  locked: "border-border bg-muted text-muted-foreground",
-}
-
 const LANGUAGE_LABEL: Record<Lab["language"], string> = {
   python: "Python",
   php: "PHP",
   typescript: "TypeScript",
 }
 
-type SaveStatus = "idle" | "saving" | "saved" | "failed"
-type RunOutput = { text: string; status: "idle" | "running" | "success" | "error" }
-
 const SAVE_DEBOUNCE_MS = 1000
 const HEARTBEAT_INTERVAL_MS = 30000
-
-function EmptyState({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-1 p-4 text-center">
-      <p className="text-sm font-medium text-foreground/70">{title}</p>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-  )
-}
 
 export default function LabWorkspace({ lab }: { lab: Lab }) {
   const language = lab.language
   const config = LANGUAGE_CONFIG[language]
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
 
   const [activeStepId, setActiveStepId] = useState(lab.steps[0].id)
   const [openStepIds, setOpenStepIds] = useState<string[]>([lab.steps[0].id])
@@ -244,13 +214,112 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
     setHintsRevealed((prev) => ({ ...prev, [stepId]: !prev[stepId] }))
   }
 
+  const handleOpenChange = (value: string[]) => {
+    setOpenStepIds(value)
+  }
+
+  const handleStepChange = (stepId: string) => {
+    setActiveStepId(stepId)
+  }
+
   const doneCount = lab.steps.filter((step) => stepStatus[step.id] === "done").length
   const progress = lab.steps.length === 0 ? 0 : Math.round((doneCount / lab.steps.length) * 100)
 
+  const stepsPanel = (
+    <LabSteps
+      className="h-full"
+      steps={lab.steps}
+      stepStatus={stepStatus}
+      activeStepId={activeStepId}
+      openStepIds={openStepIds}
+      hintsRevealed={hintsRevealed}
+      onStepChange={handleStepChange}
+      onOpenChange={handleOpenChange}
+      onToggleHint={toggleHint}
+    />
+  )
+
+  const codePanel = (
+    <LabCode
+      className="h-full"
+      language={language}
+      filename={config.filename}
+      value={code}
+      saveStatus={saveStatus}
+      isRunning={isRunning}
+      onChange={handleCodeChange}
+      onRun={handleRun}
+    />
+  )
+
+  const outputPanel = <LabOutput className="h-full" runOutput={runOutput} />
+
+  const desktopLayout = (
+    <ResizablePanelGroup orientation="horizontal" className="h-full">
+      <ResizablePanel defaultSize="22" minSize="18" className="min-h-0">
+        {stepsPanel}
+      </ResizablePanel>
+
+      <ResizableHandle withHandle />
+
+      <ResizablePanel defaultSize="78" minSize="40" className="min-h-0">
+        <ResizablePanelGroup orientation="vertical">
+          <ResizablePanel defaultSize="65" minSize="20" className="min-h-0">
+            {codePanel}
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          <ResizablePanel defaultSize="35" minSize="15" className="min-h-0">
+            {outputPanel}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  )
+
+  const mobileLayout = (
+    <Tabs defaultValue="editor" className="flex h-full flex-col gap-2">
+      <TabsList className="w-full">
+        <TabsTrigger value="steps">
+          <ListChecks />
+          Steps
+        </TabsTrigger>
+        <TabsTrigger value="editor">
+          <FileCode />
+          Editor
+        </TabsTrigger>
+        <TabsTrigger value="output">
+          <Terminal />
+          Output
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="steps" className="min-h-0 flex-1">
+        {stepsPanel}
+      </TabsContent>
+
+      <TabsContent value="editor" className="min-h-0 flex-1">
+        {codePanel}
+      </TabsContent>
+
+      <TabsContent value="output" className="min-h-0 flex-1">
+        {outputPanel}
+      </TabsContent>
+    </Tabs>
+  )
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-2.5">
-        <Breadcrumb>
+    <div className="lab-theme flex h-dvh flex-col overflow-hidden bg-background">
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2.5 lg:gap-4 lg:px-4">
+        <Link
+          href="/labs"
+          className="flex min-w-0 items-center gap-1 text-sm font-medium text-foreground/70 lg:hidden"
+        >
+          <ArrowLeft className="size-4 shrink-0" />
+          <span className="truncate">{lab.title}</span>
+        </Link>
+        <Breadcrumb className="hidden lg:flex">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/labs">Dashboard</BreadcrumbLink>
@@ -265,21 +334,26 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
           {sessionCompleted && <Badge variant="secondary">Completed</Badge>}
-          <Badge>{LANGUAGE_LABEL[lab.language]}</Badge>
-          <Badge variant="secondary">{lab.category}</Badge>
-          <Badge variant="outline">{lab.difficulty}</Badge>
+          <Badge className="hidden sm:inline-flex">{LANGUAGE_LABEL[lab.language]}</Badge>
+          <Badge variant="secondary" className="hidden sm:inline-flex">
+            {lab.category}
+          </Badge>
+          <Badge variant="outline" className="hidden sm:inline-flex">
+            {lab.difficulty}
+          </Badge>
           <AlertDialog open={restartOpen} onOpenChange={setRestartOpen}>
             <AlertDialogTrigger
               render={
                 <Button size="sm" variant="outline">
                   <RotateCcw />
-                  Restart lab
+                  <span className="hidden sm:inline">Restart lab</span>
+                  <span className="sr-only sm:hidden">Restart lab</span>
                 </Button>
               }
             />
-            <AlertDialogContent>
+            <AlertDialogContent className="lab-theme-surface">
               <AlertDialogHeader>
                 <AlertDialogTitle>Restart lab?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -315,199 +389,15 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
         </div>
       </header>
 
-      <div className="shrink-0 px-4 py-3">
+      <div className="shrink-0 px-3 py-3 lg:px-4">
         <Progress value={progress}>
           <ProgressLabel>Lab progress</ProgressLabel>
           <ProgressValue />
         </Progress>
       </div>
 
-      <main className="min-h-0 flex-1 p-4 pt-0">
-        <ResizablePanelGroup orientation="horizontal">
-          <ResizablePanel defaultSize="22" minSize="18" className="min-h-0">
-            <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card/50">
-              <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
-                <span className="text-sm font-medium">Steps</span>
-                <span className="text-xs text-muted-foreground">{lab.steps.length}</span>
-              </div>
-              <ScrollArea className="min-h-0 flex-1">
-                <Accordion
-                  value={openStepIds}
-                  onValueChange={(value) => setOpenStepIds(value)}
-                  className="p-1.5"
-                >
-                  {lab.steps.map((step) => (
-                    <AccordionItem key={step.id} value={step.id}>
-                      <AccordionTrigger
-                        onClick={() => setActiveStepId(step.id)}
-                        className={cn(
-                          "gap-2 px-3",
-                          activeStepId === step.id && "bg-primary/10"
-                        )}
-                      >
-                        <span className="flex min-w-0 flex-1 items-center gap-2">
-                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs tabular-nums text-muted-foreground">
-                            {step.order}
-                          </span>
-                          <span className="min-w-0 flex-1 truncate">{step.title}</span>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "shrink-0",
-                              STATUS_BADGE_CLASS[stepStatus[step.id]]
-                            )}
-                          >
-                            {STATUS_LABEL[stepStatus[step.id]]}
-                          </Badge>
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-3">
-                        <p className="whitespace-pre-line text-muted-foreground">
-                          {step.content}
-                        </p>
-                        {step.hint && (
-                          <div className="mt-2">
-                            <Button
-                              size="xs"
-                              variant="outline"
-                              onClick={() => toggleHint(step.id)}
-                            >
-                              <Lightbulb />
-                              {hintsRevealed[step.id] ? "Hide hint" : "Show hint"}
-                            </Button>
-                            {hintsRevealed[step.id] && (
-                              <div className="mt-2 rounded-md border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                                {step.hint}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
-
-          <ResizablePanel defaultSize="78" minSize="40" className="min-h-0">
-            <ResizablePanelGroup orientation="vertical">
-              <ResizablePanel defaultSize="65" minSize="20" className="min-h-0">
-                <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-muted/30">
-                  <Tabs defaultValue={config.filename} className="flex h-full flex-col gap-0">
-                    <div className="flex shrink-0 items-center justify-between border-b bg-muted/50 pr-2">
-                      <TabsList
-                        variant="line"
-                        className="h-9 w-full justify-start rounded-none px-1"
-                      >
-                        <TabsTrigger value={config.filename}>
-                          <FileCode />
-                          {config.filename}
-                        </TabsTrigger>
-                      </TabsList>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {saveStatus === "saving" && (
-                          <span className="text-xs text-muted-foreground">Saving...</span>
-                        )}
-                        {saveStatus === "saved" && (
-                          <span className="text-xs text-status-done">Saved</span>
-                        )}
-                        {saveStatus === "failed" && (
-                          <span className="text-xs text-destructive">Save failed</span>
-                        )}
-                        <Button size="sm" onClick={handleRun} disabled={isRunning}>
-                          <Play />
-                          {isRunning ? "Running..." : "Run"}
-                        </Button>
-                      </div>
-                    </div>
-                    <TabsContent
-                      value={config.filename}
-                      className="flex min-h-0 flex-1 flex-col"
-                    >
-                      <CodeEditor
-                        language={language}
-                        value={code}
-                        onChange={handleCodeChange}
-                      />
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </ResizablePanel>
-
-              <ResizableHandle withHandle />
-
-              <ResizablePanel defaultSize="35" minSize="15" className="min-h-0">
-                <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-muted/30">
-                  <Tabs defaultValue="logs" className="flex h-full flex-col gap-0">
-                    <TabsList
-                      variant="line"
-                      className="h-9 w-full justify-start rounded-none border-b px-1"
-                    >
-                      <TabsTrigger value="logs">
-                        <Terminal />
-                        Logs
-                      </TabsTrigger>
-                      <TabsTrigger value="results">Results</TabsTrigger>
-                      <TabsTrigger value="tests">Tests</TabsTrigger>
-                      <TabsTrigger value="history">History</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="logs" className="min-h-0 flex-1 p-3">
-                      <ScrollArea className="h-full">
-                        {runOutput.status === "idle" ? (
-                          <Alert>
-                            <Terminal />
-                            <AlertTitle>No output yet</AlertTitle>
-                            <AlertDescription>{runOutput.text}</AlertDescription>
-                          </Alert>
-                        ) : (
-                          <pre
-                            className={cn(
-                              "whitespace-pre-wrap rounded-md border bg-zinc-950 p-3 font-mono text-sm text-zinc-100",
-                              runOutput.status === "error" && "text-red-400"
-                            )}
-                          >
-                            {runOutput.text}
-                          </pre>
-                        )}
-                      </ScrollArea>
-                    </TabsContent>
-
-                    <TabsContent value="results" className="min-h-0 flex-1 p-3">
-                      <ScrollArea className="h-full">
-                        <EmptyState
-                          title="No results yet"
-                          description="Completed runs will show up here."
-                        />
-                      </ScrollArea>
-                    </TabsContent>
-
-                    <TabsContent value="tests" className="min-h-0 flex-1 p-3">
-                      <ScrollArea className="h-full">
-                        <EmptyState
-                          title="No tests run"
-                          description="Tests will show up here once you run your code."
-                        />
-                      </ScrollArea>
-                    </TabsContent>
-
-                    <TabsContent value="history" className="min-h-0 flex-1 p-3">
-                      <ScrollArea className="h-full">
-                        <EmptyState
-                          title="No run history"
-                          description="Past executions will appear here."
-                        />
-                      </ScrollArea>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      <main className="min-h-0 flex-1 p-3 pt-0 lg:p-4 lg:pt-0">
+        {isDesktop ? desktopLayout : mobileLayout}
       </main>
     </div>
   )
