@@ -5,8 +5,8 @@ import { cookies } from "next/headers"
 import type { Lab, LabStep } from "@/lib/mock-data"
 import type { Language } from "@/lib/languages"
 
-// DEV ONLY, update when deploying or sharing with teammates
-const DJANGO_BASE = "http://localhost:8000"
+// Override with DJANGO_BASE_URL for non-local backends (see .env.example).
+const DJANGO_BASE = process.env.DJANGO_BASE_URL ?? "http://localhost:8000"
 
 type ApiObjective = {
   id: string

@@ -31,7 +31,7 @@ The backend connects at:
 http://localhost:8000
 ```
 
-The application reads the backend address from `lib/actions/lab-sessions.ts`. Change the `DJANGO_BASE` value if the backend runs on another address.
+The application reads the backend address from the `DJANGO_BASE_URL` environment variable. The variable defaults to `http://localhost:8000`. Copy `.env.example` to `.env` and change the value if the backend runs on another address.
 
 The Piston service handles code execution. The Piston container must include the language runtimes. The Python version is 3.12.0. The PHP version is 8.2.3. The TypeScript version is 5.0.3. The versions in `lib/languages.ts` must match the installed runtimes.
 
@@ -78,6 +78,26 @@ The server runs on port 3001. Wait for the backend and the SSO portal before you
 | Build | `npm run build` | Create a production build |
 | Start | `npm start` | Start the production server |
 | Lint | `npm run lint` | Run the ESLint checks |
+| Test | `npm test` | Run the Vitest test suite |
+
+## Backend API
+
+The frontend calls these endpoints on the Django backend:
+
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| GET | `/api/labs/` | List the published labs |
+| GET | `/api/labs/{id}/` | Load a single lab with its objectives |
+| GET | `/api/sessions/{lab_id}/` | Load the saved session (code, status, last active) |
+| POST | `/api/sessions/{lab_id}/` | Save the current code |
+| POST | `/api/sessions/{lab_id}/heartbeat/` | Keep the session alive |
+| POST | `/api/sessions/{lab_id}/complete/` | Mark the session complete |
+| POST | `/api/sessions/{lab_id}/reset/` | Reset the session |
+| POST | `/api/execute/` | Run code and return the output |
+
+The execute request carries the language, the version, the filename, and the code. The response carries stdout, stderr, and the exit code. The versions in `lib/languages.ts` must match the runtimes installed in the Piston container.
+
+The application sends the access token as a Bearer header on every call. A 401 response triggers a refresh-token exchange and one retry.
 
 ## Project structure
 
@@ -86,11 +106,14 @@ The server runs on port 3001. Wait for the backend and the SSO portal before you
 | `app/page.tsx` | The landing page |
 | `app/labs/page.tsx` | The list of labs |
 | `app/labs/[labId]/page.tsx` | A single lab workspace |
-| `components/lab/` | The lab editor, steps, and output panels |
+| `components/lab/` | The lab top bar, editor, steps, and output panels |
 | `components/ui/` | The reusable UI components |
+| `lib/lab-utils.ts` | Pure helpers for run errors and progress |
 | `lib/actions/lab-sessions.ts` | The backend API calls |
 | `lib/languages.ts` | The language configuration |
 | `lib/mock-data.ts` | The mock lab shape for the UI |
+| `app/labs/[labId]/` | The lab page with its loading and error boundaries |
+| `vitest.config.ts` | The Vitest setup |
 | `proxy.ts` | The SSO middleware |
 
 ## Development notes
@@ -100,3 +123,7 @@ The backend defines the lab data. The UI shape stays stable. This lets the front
 The API calls read the access token from the cookies. They send the token as a Bearer header to the backend. On a 401 response, the application refreshes the token and retries once.
 
 The editor autosaves the code one second after the last keystroke. The application sends a heartbeat every 30 seconds to keep the session active.
+
+The editor flushes pending edits when the tab hides or the workspace unmounts. Step progress, open steps, and revealed hints persist in the browser's local storage. They survive a refresh but not a device change.
+
+Run `npm test` to execute the Vitest suite. The tests cover the run-error messages, the progress helpers, the output panel, the step list, and the autosave behavior.

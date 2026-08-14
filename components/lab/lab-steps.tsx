@@ -37,6 +37,7 @@ export type LabStepsProps = {
   onStepChange: (stepId: string) => void
   onOpenChange: (value: string[]) => void
   onToggleHint: (stepId: string) => void
+  onToggleDone?: (stepId: string) => void
   className?: string
 }
 
@@ -49,6 +50,7 @@ export function LabSteps({
   onStepChange,
   onOpenChange,
   onToggleHint,
+  onToggleDone,
   className,
 }: LabStepsProps) {
   return (
@@ -68,55 +70,71 @@ export function LabSteps({
           onValueChange={onOpenChange}
           className="p-1.5"
         >
-          {steps.map((step) => (
-            <AccordionItem key={step.id} value={step.id}>
-              <AccordionTrigger
-                onClick={() => onStepChange(step.id)}
-                className={cn(
-                  "gap-2 px-3",
-                  activeStepId === step.id && "bg-primary/10"
-                )}
+          {steps.map((step) => {
+            const status = stepStatus[step.id]
+            const locked = status === "locked"
+            return (
+              <AccordionItem
+                key={step.id}
+                value={step.id}
+                disabled={locked}
+                className={locked ? "opacity-60" : undefined}
               >
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs tabular-nums text-muted-foreground">
-                    {step.order}
+                <AccordionTrigger
+                  onClick={() => !locked && onStepChange(step.id)}
+                  className={cn(
+                    "gap-2 px-3",
+                    activeStepId === step.id && "bg-primary/10"
+                  )}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs tabular-nums text-muted-foreground">
+                      {step.order}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{step.title}</span>
+                    <Badge
+                      variant="outline"
+                      className={cn("shrink-0", STATUS_BADGE_CLASS[status])}
+                    >
+                      {STATUS_LABEL[status]}
+                    </Badge>
                   </span>
-                  <span className="min-w-0 flex-1 truncate">{step.title}</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "shrink-0",
-                      STATUS_BADGE_CLASS[stepStatus[step.id]]
-                    )}
-                  >
-                    {STATUS_LABEL[stepStatus[step.id]]}
-                  </Badge>
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="px-3">
-                <p className="whitespace-pre-line text-muted-foreground">
-                  {step.content}
-                </p>
-                {step.hint && (
-                  <div className="mt-2">
+                </AccordionTrigger>
+                <AccordionContent className="px-3">
+                  <p className="whitespace-pre-line text-muted-foreground">
+                    {step.content}
+                  </p>
+                  {onToggleDone && (
                     <Button
                       size="xs"
-                      variant="outline"
-                      onClick={() => onToggleHint(step.id)}
+                      variant={status === "done" ? "outline" : "default"}
+                      className="mt-2"
+                      onClick={() => onToggleDone(step.id)}
                     >
-                      <Lightbulb />
-                      {hintsRevealed[step.id] ? "Hide hint" : "Show hint"}
+                      {status === "done" ? "Undo" : "Mark as done"}
                     </Button>
-                    {hintsRevealed[step.id] && (
-                      <div className="mt-2 rounded-md border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                        {step.hint}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+                  )}
+                  {step.hint && (
+                    <div className="mt-2">
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => onToggleHint(step.id)}
+                      >
+                        <Lightbulb />
+                        {hintsRevealed[step.id] ? "Hide hint" : "Show hint"}
+                      </Button>
+                      {hintsRevealed[step.id] && (
+                        <div className="mt-2 rounded-md border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                          {step.hint}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
         </Accordion>
       </ScrollArea>
     </div>

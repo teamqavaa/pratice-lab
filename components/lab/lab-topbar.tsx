@@ -35,6 +35,7 @@ const LANGUAGE_LABEL: Record<Lab["language"], string> = {
 export type LabTopBarProps = {
   lab: Lab
   sessionCompleted: boolean
+  canComplete: boolean
   progress: number
   currentStep: number
   totalSteps: number
@@ -49,6 +50,7 @@ export type LabTopBarProps = {
 export function LabTopBar({
   lab,
   sessionCompleted,
+  canComplete,
   progress,
   currentStep,
   totalSteps,
@@ -115,12 +117,12 @@ export function LabTopBar({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button
-              size="sm"
-              variant={sessionCompleted ? "outline" : "default"}
-              disabled={sessionCompleted}
-              onClick={onComplete}
-            >
+          <Button
+            size="sm"
+            variant={sessionCompleted ? "outline" : "default"}
+            disabled={sessionCompleted || !canComplete}
+            onClick={onComplete}
+          >
               {sessionCompleted ? (
                 <>
                   <Check />
