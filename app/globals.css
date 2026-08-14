@@ -162,6 +162,13 @@
   background-color: var(--primary);
 }
 
+/* Top bar sits outside the dark wrapper and keeps the app's light theme.
+   Only the primary token is re-pointed so the progress fill and the primary
+   action button use the lab's purple accent. */
+.lab-topbar {
+  --primary: #8b5cf6;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

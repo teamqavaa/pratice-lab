@@ -1,40 +1,19 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, Check, FileCode, ListChecks, RotateCcw, Terminal } from "lucide-react"
+import { FileCode, ListChecks, Terminal } from "lucide-react"
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 import { LabCode } from "@/components/lab/lab-code"
 import { LabOutput } from "@/components/lab/lab-output"
 import { LabSteps } from "@/components/lab/lab-steps"
+import { LabTopBar } from "@/components/lab/lab-topbar"
 import type { RunOutput, SaveStatus, StepStatus } from "@/components/lab/lab-types"
 import { useMediaQuery } from "@/lib/use-media-query"
 import type { Lab } from "@/lib/mock-data"
@@ -47,12 +26,6 @@ import {
   saveLabSession,
   sendLabHeartbeat,
 } from "@/lib/actions/lab-sessions"
-
-const LANGUAGE_LABEL: Record<Lab["language"], string> = {
-  python: "Python",
-  php: "PHP",
-  typescript: "TypeScript",
-}
 
 const SAVE_DEBOUNCE_MS = 1000
 const HEARTBEAT_INTERVAL_MS = 30000
@@ -224,6 +197,7 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
 
   const doneCount = lab.steps.filter((step) => stepStatus[step.id] === "done").length
   const progress = lab.steps.length === 0 ? 0 : Math.round((doneCount / lab.steps.length) * 100)
+  const currentStepNumber = lab.steps.findIndex((step) => step.id === activeStepId) + 1
 
   const stepsPanel = (
     <LabSteps
@@ -310,93 +284,20 @@ export default function LabWorkspace({ lab }: { lab: Lab }) {
   )
 
   return (
-    <div className="lab-theme flex h-dvh flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2.5 lg:gap-4 lg:px-4">
-        <Link
-          href="/labs"
-          className="flex min-w-0 items-center gap-1 text-sm font-medium text-foreground/70 lg:hidden"
-        >
-          <ArrowLeft className="size-4 shrink-0" />
-          <span className="truncate">{lab.title}</span>
-        </Link>
-        <Breadcrumb className="hidden lg:flex">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/labs">Dashboard</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/labs">My Labs</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{lab.title}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
-          {sessionCompleted && <Badge variant="secondary">Completed</Badge>}
-          <Badge className="hidden sm:inline-flex">{LANGUAGE_LABEL[lab.language]}</Badge>
-          <Badge variant="secondary" className="hidden sm:inline-flex">
-            {lab.category}
-          </Badge>
-          <Badge variant="outline" className="hidden sm:inline-flex">
-            {lab.difficulty}
-          </Badge>
-          <AlertDialog open={restartOpen} onOpenChange={setRestartOpen}>
-            <AlertDialogTrigger
-              render={
-                <Button size="sm" variant="outline">
-                  <RotateCcw />
-                  <span className="hidden sm:inline">Restart lab</span>
-                  <span className="sr-only sm:hidden">Restart lab</span>
-                </Button>
-              }
-            />
-            <AlertDialogContent className="lab-theme-surface">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Restart lab?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This clears your saved code, resets the lab progress, and returns
-                  the editor to its starter code. This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogClose
-                  render={<Button variant="outline">Cancel</Button>}
-                />
-                <Button variant="destructive" onClick={handleRestart}>
-                  Restart lab
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Button
-            size="sm"
-            variant={sessionCompleted ? "outline" : "default"}
-            disabled={sessionCompleted}
-            onClick={handleComplete}
-          >
-            {sessionCompleted ? (
-              <>
-                <Check />
-                Completed
-              </>
-            ) : (
-              "Mark as Complete"
-            )}
-          </Button>
-        </div>
-      </header>
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
+      <LabTopBar
+        lab={lab}
+        sessionCompleted={sessionCompleted}
+        progress={progress}
+        currentStep={currentStepNumber}
+        totalSteps={lab.steps.length}
+        restartOpen={restartOpen}
+        onRestartOpenChange={setRestartOpen}
+        onComplete={handleComplete}
+        onRestart={handleRestart}
+      />
 
-      <div className="shrink-0 px-3 py-3 lg:px-4">
-        <Progress value={progress}>
-          <ProgressLabel>Lab progress</ProgressLabel>
-          <ProgressValue />
-        </Progress>
-      </div>
-
-      <main className="min-h-0 flex-1 p-3 pt-0 lg:p-4 lg:pt-0">
+      <main className="lab-theme min-h-0 flex-1 bg-background p-3 pt-0 lg:p-4 lg:pt-0">
         {isDesktop ? desktopLayout : mobileLayout}
       </main>
     </div>
