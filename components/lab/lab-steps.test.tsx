@@ -7,9 +7,9 @@ import { LabSteps } from "./lab-steps"
 import type { StepStatus } from "./lab-types"
 
 const steps: LabStep[] = [
-  { id: "s1", order: 1, title: "Create the list", content: "Build a list.", hint: null },
-  { id: "s2", order: 2, title: "Loop it", content: "Loop over it.", hint: "Use a for loop." },
-  { id: "s3", order: 3, title: "Find the max", content: "Scan it.", hint: "Track a running max." },
+  { id: "s1", order: 1, title: "Create the list", content: "Build a list.", hint: null, starterCode: null },
+  { id: "s2", order: 2, title: "Loop it", content: "Loop over it.", hint: "Use a for loop.", starterCode: null },
+  { id: "s3", order: 3, title: "Find the max", content: "Scan it.", hint: "Track a running max.", starterCode: null },
 ]
 
 const status: Record<string, StepStatus> = {

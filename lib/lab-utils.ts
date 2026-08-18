@@ -1,4 +1,5 @@
 import type { ExecuteLabResult } from "@/lib/actions/lab-sessions"
+import type { StepStatus } from "@/components/lab/lab-types"
 
 export type RunError = Extract<ExecuteLabResult, { ok: false }>
 
@@ -36,10 +37,13 @@ export function getCurrentStepNumber(steps: { id: string }[], activeStepId: stri
   return index === -1 ? 1 : index + 1
 }
 
-// Bar fill tracks the active step position so it matches the "Step N of M"
-// label; completed steps stay visible in their badges.
-export function getStepProgress(currentStepNumber: number, totalSteps: number): number {
-  if (totalSteps === 0) return 0
-  const position = Math.max(1, Math.min(currentStepNumber, totalSteps))
-  return Math.round(((position - 1) / totalSteps) * 100)
+// Bar fill tracks the number of done steps so it moves only on completion;
+// the "Step N of M" label still follows the active step position.
+export function computeProgress(
+  steps: { id: string }[],
+  stepStatus: Record<string, StepStatus>
+): number {
+  if (steps.length === 0) return 0
+  const doneCount = steps.filter((step) => stepStatus[step.id] === "done").length
+  return Math.round((doneCount / steps.length) * 100)
 }

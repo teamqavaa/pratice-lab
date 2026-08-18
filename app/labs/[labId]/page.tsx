@@ -23,7 +23,12 @@ export default async function LabPage({
   const { labId } = await params
   const result = await getLab(labId)
 
-  if (!result.ok) notFound()
+  // A missing lab id stays a clean 404; any other failure (backend down,
+  // network) throws so the error boundary renders with a retry button.
+  if (!result.ok) {
+    if (result.status === 404) notFound()
+    throw new Error(result.message)
+  }
 
   return <LabWorkspace lab={result.lab} />
 }

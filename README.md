@@ -12,6 +12,8 @@ The application supports three languages currently:
 
 The application loads labs from a backend. Each lab contains a series of steps. The student marks a step complete and moves to the next step. The student can reveal a hint for a step.
 
+Each step has its own starter code. The editor loads the starter code of the step in progress. The student's edits for each step stay separate and survive switching between steps.
+
 The student writes code in a browser-based editor. The student can run the code to check the output. The application saves the code automatically.
 
 The application sends progress information to the backend. This keeps the lab session active while the student works.

@@ -14,6 +14,7 @@ type ApiObjective = {
   title: string
   content: string
   hint: string | null
+  starter_code: string | null
 }
 
 type ApiLab = {
@@ -23,7 +24,6 @@ type ApiLab = {
   language: Language
   status: string
   created_at: string
-  starter_code: string | null
   objectives: ApiObjective[]
 }
 
@@ -37,6 +37,9 @@ function toLab(apiLab: ApiLab): Lab {
       title: objective.title,
       content: objective.content,
       hint: objective.hint,
+      // Empty string from the backend means no starter; normalize to null so
+      // the editor renders blank instead of a comment-only buffer.
+      starterCode: objective.starter_code || null,
     }))
 
   return {
@@ -48,7 +51,6 @@ function toLab(apiLab: ApiLab): Lab {
     category: "Practice Lab",
     difficulty: "guided",
     steps,
-    starterCode: apiLab.starter_code ?? null,
   }
 }
 
@@ -126,12 +128,13 @@ export async function getLabSession(labId: string): Promise<GetLabSessionResult>
 
 export async function saveLabSession(
   labId: string,
-  currentCode: string
+  currentCode: string,
+  completedSteps?: number
 ): Promise<SaveLabSessionResult> {
   try {
     const res = await djangoFetch(`/api/sessions/${labId}/`, {
       method: "POST",
-      body: JSON.stringify({ current_code: currentCode }),
+      body: JSON.stringify({ current_code: currentCode, completed_steps: completedSteps }),
     })
     if (!res.ok) {
       return { ok: false, message: `Save failed (status ${res.status})` }
@@ -154,19 +157,19 @@ export async function sendLabHeartbeat(labId: string): Promise<{ ok: boolean }> 
 
 export type GetLabResult =
   | { ok: true; lab: Lab }
-  | { ok: false; message: string }
+  | { ok: false; status: number; message: string }
 
 export async function getLab(labId: string): Promise<GetLabResult> {
   try {
     // Public endpoint, but reusing djangoFetch keeps auth consistent.
     const res = await djangoFetch(`/api/labs/${labId}/`, { cache: "no-store" })
     if (!res.ok) {
-      return { ok: false, message: `Lab load failed (status ${res.status})` }
+      return { ok: false, status: res.status, message: `Lab load failed (status ${res.status})` }
     }
     const apiLab: ApiLab = await res.json()
     return { ok: true, lab: toLab(apiLab) }
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : "Unknown error" }
+    return { ok: false, status: 0, message: err instanceof Error ? err.message : "Unknown error" }
   }
 }
 
@@ -277,6 +280,19 @@ export async function completeLab(labId: string): Promise<CompleteLabResult> {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       return { ok: false, message: data.error || `Complete failed (status ${res.status})` }
+    }
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Unknown error" }
+  }
+}
+
+export async function uncompleteLab(labId: string): Promise<CompleteLabResult> {
+  try {
+    const res = await djangoFetch(`/api/sessions/${labId}/uncomplete/`, { method: "POST" })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { ok: false, message: data.error || `Uncomplete failed (status ${res.status})` }
     }
     return { ok: true }
   } catch (err) {

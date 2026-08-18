@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest"
 
+import type { StepStatus } from "@/components/lab/lab-types"
 import {
+  computeProgress,
   getCurrentStepNumber,
-  getStepProgress,
   translateRunError,
   type RunError,
 } from "./lab-utils"
@@ -65,19 +66,31 @@ describe("getCurrentStepNumber", () => {
   })
 })
 
-describe("getStepProgress", () => {
+describe("computeProgress", () => {
+  const steps = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }, { id: "e" }]
+
+  function status(done: string[]): Record<string, StepStatus> {
+    const map: Record<string, StepStatus> = {}
+    steps.forEach((step) => {
+      map[step.id] = done.includes(step.id) ? "done" : "in_progress"
+    })
+    return map
+  }
+
   it("returns 0 for an empty lab", () => {
-    expect(getStepProgress(1, 0)).toBe(0)
+    expect(computeProgress([], status([]))).toBe(0)
   })
 
-  it("maps the active step position to a percentage", () => {
-    expect(getStepProgress(1, 5)).toBe(0)
-    expect(getStepProgress(3, 5)).toBe(40)
-    expect(getStepProgress(5, 5)).toBe(80)
+  it("returns 0 when no step is done", () => {
+    expect(computeProgress(steps, status([]))).toBe(0)
   })
 
-  it("clamps out-of-range positions", () => {
-    expect(getStepProgress(0, 5)).toBe(0)
-    expect(getStepProgress(9, 5)).toBe(80)
+  it("fills by the number of done steps", () => {
+    expect(computeProgress(steps, status(["a"]))).toBe(20)
+    expect(computeProgress(steps, status(["a", "b", "c"]))).toBe(60)
+  })
+
+  it("fills fully when every step is done", () => {
+    expect(computeProgress(steps, status(["a", "b", "c", "d", "e"]))).toBe(100)
   })
 })
