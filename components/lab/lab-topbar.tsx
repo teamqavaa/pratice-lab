@@ -74,6 +74,10 @@ export function LabTopBar({
             <Breadcrumb className="hidden lg:flex">
               <BreadcrumbList>
                 <BreadcrumbItem>
+                  <span>Home</span>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
                   <BreadcrumbLink href="/labs">Dashboard</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
