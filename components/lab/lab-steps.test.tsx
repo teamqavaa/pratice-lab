@@ -73,4 +73,16 @@ describe("LabSteps", () => {
     await user.click(screen.getByRole("button", { name: /Show hint/ }))
     expect(onToggleHint).toHaveBeenCalledWith("s2")
   })
+
+  it("copies the step content through its button", async () => {
+    const user = userEvent.setup()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    })
+    renderSteps()
+    await user.click(screen.getByRole("button", { name: "Copy" }))
+    expect(writeText).toHaveBeenCalledWith("Loop over it.")
+  })
 })

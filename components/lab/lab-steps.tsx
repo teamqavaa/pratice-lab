@@ -1,6 +1,7 @@
 "use client"
 
-import { Lightbulb } from "lucide-react"
+import { useState } from "react"
+import { Check, Copy, Lightbulb } from "lucide-react"
 
 import {
   Accordion,
@@ -53,6 +54,21 @@ export function LabSteps({
   onToggleDone,
   className,
 }: LabStepsProps) {
+  const [copiedStepId, setCopiedStepId] = useState<string | null>(null)
+
+  const copyContent = async (step: LabStep) => {
+    try {
+      await navigator.clipboard.writeText(step.content)
+      setCopiedStepId(step.id)
+      setTimeout(
+        () => setCopiedStepId((id) => (id === step.id ? null : id)),
+        2000
+      )
+    } catch {
+      // Clipboard blocked; leave the button inert.
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -101,9 +117,22 @@ export function LabSteps({
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="px-3">
-                  <p className="whitespace-pre-line text-muted-foreground">
-                    {step.content}
-                  </p>
+                  <div className="relative">
+                    <Button
+                      size="icon-xs"
+                      variant="ghost"
+                      className="absolute right-0 top-0"
+                      aria-label={
+                        copiedStepId === step.id ? "Copied" : "Copy"
+                      }
+                      onClick={() => copyContent(step)}
+                    >
+                      {copiedStepId === step.id ? <Check /> : <Copy />}
+                    </Button>
+                    <p className="whitespace-pre-line pr-8 text-muted-foreground">
+                      {step.content}
+                    </p>
+                  </div>
                   {onToggleDone && (
                     <Button
                       size="xs"
