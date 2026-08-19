@@ -23,6 +23,7 @@ type ApiLab = {
   description: string | null
   language: Language
   status: string
+  difficulty: Lab["difficulty"]
   created_at: string
   objectives: ApiObjective[]
 }
@@ -46,10 +47,7 @@ function toLab(apiLab: ApiLab): Lab {
     id: apiLab.id,
     title: apiLab.title,
     language: apiLab.language,
-    // Backend has no category/difficulty fields; keep the UI shape stable so
-    // consumers never depend on the API payload.
-    category: "Practice Lab",
-    difficulty: "guided",
+    difficulty: apiLab.difficulty,
     steps,
   }
 }

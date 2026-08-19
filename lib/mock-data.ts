@@ -11,7 +11,6 @@ export type Lab = {
   id: string
   title: string
   language: "python" | "php" | "typescript"
-  category: string
   difficulty: "guided" | "intermediate" | "advanced"
   steps: LabStep[]
 }
@@ -23,7 +22,6 @@ export const mockLabs: Lab[] = [
     id: "test123",
     title: "Intro to Python Lists",
     language: "python",
-    category: "Data Literacy",
     difficulty: "guided",
     steps: [
       {

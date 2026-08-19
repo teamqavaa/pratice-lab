@@ -145,9 +145,6 @@ export function LabTopBar({
               {LANGUAGE_LABEL[lab.language]}
             </Badge>
             <Badge variant="secondary" className="hidden sm:inline-flex">
-              {lab.category}
-            </Badge>
-            <Badge variant="secondary" className="hidden sm:inline-flex">
               {lab.difficulty}
             </Badge>
           </div>
