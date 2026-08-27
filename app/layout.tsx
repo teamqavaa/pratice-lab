@@ -21,7 +21,9 @@ export const metadata: Metadata = {
   description: "Interactive coding labs with guided steps and live code execution.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
