@@ -12,22 +12,18 @@ The application supports three languages currently.
 
 ## Role in the platform
 
-Five repos form the Qavaa learning platform.
+Four repos form the Qavaa learning platform.
 
 | Repo | Role | Dev port |
 | ---- | ---- | ---- |
 | qi-sso-front | Identity portal | 3001 |
 | contents-lab | Course catalog, cart, staff admin | 3000 |
-| Digital-Readiness-Lab | User accounts, labs, code execution API | 8000 |
-| courses-api | Course catalog REST API | 8001 |
+| courses-api | Catalog, user accounts, labs, code execution API | 8000 |
 | pratice-lab | Coding practice workspace (this repo) | 3002 |
 
 Notes:
 
-- The dev script in `package.json` pins port 3001.
-- The identity portal also runs on port 3001 in development.
-- Run Practice Lab on port 3002 when the portal runs on the same machine.
-- Start it with `npx next dev -p 3002` in that case.
+- The dev script in `package.json` starts the server on port 3002.
 
 ## How it works
 
@@ -58,7 +54,7 @@ The application needs:
 - The Piston code execution service.
 
 The backend connects at `http://localhost:8000`.
-This is the backend of the `Digital-Readiness-Lab` repo.
+This is the `courses-api` backend (the `lab` app).
 
 The application reads the backend address from the `DJANGO_BASE_URL` environment variable.
 The variable defaults to `http://localhost:8000`.
@@ -113,7 +109,7 @@ Confirm that these services run:
 
 - Practice Lab on port 3002.
 - SSO portal on port 3001.
-- Django backend on port 8000.
+- courses-api backend on port 8000.
 - Piston execution service.
 
 ## Scripts
@@ -189,6 +185,5 @@ The tests cover the run-error messages, the progress helpers, the output panel, 
 ## Related repos
 
 - [qi-sso-front](https://github.com/teamqavaa/qi-sso-front.git)
-- [Digital-Readiness-Lab](https://github.com/teamqavaa/Digital-Readiness-Lab.git)
 - [contents-lab](https://github.com/teamqavaa/contents-lab.git)
 - [courses-api](https://github.com/teamqavaa/courses-api.git)
