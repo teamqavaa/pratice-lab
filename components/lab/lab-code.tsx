@@ -39,10 +39,10 @@ export function LabCode({
     >
       <Tabs defaultValue={filename} className="flex h-full flex-col gap-0">
         <div className="flex shrink-0 items-center justify-between border-b bg-muted/50 pr-2">
-          <TabsList
-            variant="line"
-            className="h-9 w-full justify-start rounded-none px-1"
-          >
+<TabsList
+              variant="line"
+              className="h-9 min-w-0 flex-1 justify-start rounded-none px-1"
+            >
             <TabsTrigger value={filename}>
               <FileCode />
               {filename}

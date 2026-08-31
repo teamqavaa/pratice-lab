@@ -91,7 +91,7 @@ export function LabTopBar({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 lg:gap-2 flex-wrap">
             {sessionCompleted && <Badge variant="secondary">Completed</Badge>}
             <AlertDialog open={restartOpen} onOpenChange={onRestartOpenChange}>
               <AlertDialogTrigger
