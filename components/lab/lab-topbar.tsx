@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Progress, ProgressLabel } from "@/components/ui/progress"
+import { NEXT_PUBLIC_SSO_BASE_URL } from "@/lib/sso"
 import type { Lab } from "@/lib/mock-data"
 
 const LANGUAGE_LABEL: Record<Lab["language"], string> = {
@@ -65,7 +66,7 @@ export function LabTopBar({
         <div className="flex items-center justify-between gap-2 px-3 pt-1.5 lg:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Link
-              href="/labs"
+              href={`${NEXT_PUBLIC_SSO_BASE_URL}/labs`}
               className="flex min-w-0 items-center gap-1 text-sm font-medium text-foreground/70 lg:hidden"
             >
               <ArrowLeft className="size-4 shrink-0" />
@@ -74,15 +75,21 @@ export function LabTopBar({
             <Breadcrumb className="hidden lg:flex">
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <span>Home</span>
+                  <BreadcrumbLink href={`${NEXT_PUBLIC_SSO_BASE_URL}/home`}>
+                    Home
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/labs">Dashboard</BreadcrumbLink>
+                  <BreadcrumbLink href={`${NEXT_PUBLIC_SSO_BASE_URL}/dashboard`}>
+                    Dashboard
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/labs">My Labs</BreadcrumbLink>
+                  <BreadcrumbLink href={`${NEXT_PUBLIC_SSO_BASE_URL}/labs`}>
+                    My Labs
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
